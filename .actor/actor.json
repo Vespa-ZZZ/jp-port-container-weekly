@@ -1,0 +1,14 @@
+{
+    "actorSpecification": 1,
+    "name": "jp-port-container-weekly",
+    "title": "Japan Port Container Volumes — Weekly (MLIT)",
+    "description": "Weekly foreign-trade container volumes (TEU) at Tokyo, Kawasaki, Yokohama, Nagoya, Osaka and Kobe from MLIT: total, export, import with week-, month- and year-on-year ratios.",
+    "version": "1.0",
+    "buildTag": "latest",
+    "input": "./input_schema.json",
+    "storages": {
+        "dataset": "./dataset_schema.json"
+    },
+    "dockerfile": "../Dockerfile",
+    "output": "./output_schema.json"
+}

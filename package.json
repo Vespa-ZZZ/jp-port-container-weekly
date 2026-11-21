@@ -1,0 +1,18 @@
+{
+  "name": "jp-port-container-weekly",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Weekly foreign-trade container volumes (TEU) at Japan major ports from MLIT.",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "node src/main.js",
+    "test": "node --test test/port.test.js"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "apify": "^3.2.6",
+    "exceljs": "^4.4.0",
+    "cheerio": "^1.0.0"
+  }
+}

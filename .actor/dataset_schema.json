@@ -1,0 +1,59 @@
+{
+    "actorSpecification": 1,
+    "views": {
+        "overview": {
+            "title": "Overview",
+            "transformation": {
+                "fields": [
+                    "weekStart",
+                    "weekEnd",
+                    "port",
+                    "flow",
+                    "teu",
+                    "vsPreviousWeekPct",
+                    "vsSameWeekLastMonthPct",
+                    "vsSameWeekLastYearPct",
+                    "changeType"
+                ]
+            },
+            "display": {
+                "component": "table",
+                "properties": {
+                    "weekStart": {
+                        "label": "Week start",
+                        "format": "date"
+                    },
+                    "weekEnd": {
+                        "label": "Week end",
+                        "format": "date"
+                    },
+                    "port": {
+                        "label": "Port"
+                    },
+                    "flow": {
+                        "label": "Flow"
+                    },
+                    "teu": {
+                        "label": "TEU",
+                        "format": "number"
+                    },
+                    "vsPreviousWeekPct": {
+                        "label": "vs prev. week %",
+                        "format": "number"
+                    },
+                    "vsSameWeekLastMonthPct": {
+                        "label": "vs last month %",
+                        "format": "number"
+                    },
+                    "vsSameWeekLastYearPct": {
+                        "label": "vs last year %",
+                        "format": "number"
+                    },
+                    "changeType": {
+                        "label": "Change"
+                    }
+                }
+            }
+        }
+    }
+}

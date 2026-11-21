@@ -1,0 +1,41 @@
+{
+    "title": "Japan port container volumes (weekly)",
+    "type": "object",
+    "schemaVersion": 1,
+    "properties": {
+        "ports": {
+            "title": "Ports",
+            "type": "array",
+            "editor": "select",
+            "items": { "type": "string", "enum": ["Total (6 ports)", "Tokyo", "Kawasaki", "Yokohama", "Nagoya", "Osaka", "Kobe"] },
+            "description": "Limit to these ports. Leave empty for all six ports and the total."
+        },
+        "flows": {
+            "title": "Flows",
+            "type": "array",
+            "editor": "select",
+            "items": { "type": "string", "enum": ["total", "export", "import"], "enumTitles": ["Total", "Export", "Import"] },
+            "description": "Limit to total, export and/or import. Leave empty for all."
+        },
+        "includeArchive": {
+            "title": "Include recent past weeks",
+            "type": "boolean",
+            "default": true,
+            "description": "Also read MLIT's archive file with the previous weeks (about two months). Off = only the latest week."
+        },
+        "onlyNew": {
+            "title": "Monitoring mode: new and revised rows only",
+            "type": "boolean",
+            "default": false,
+            "description": "Output only weeks not returned before (changeType = new) and rows whose published values changed (changeType = revision). Schedule weekly."
+        },
+        "stateKey": {
+            "title": "Monitoring state key",
+            "type": "string",
+            "editor": "textfield",
+            "pattern": "^[a-zA-Z0-9_-]{1,50}$",
+            "default": "default",
+            "description": "Separate state per schedule."
+        }
+    }
+}
