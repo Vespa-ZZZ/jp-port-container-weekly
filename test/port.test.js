@@ -53,21 +53,25 @@ test('unexpected layouts fail clearly', async () => {
     await assert.rejects(parseWorkbook(await wb2.xlsx.writeBuffer()), /unknown port/);
 });
 
-async function exec(input, state = new Map()) {
+async function exec(input, state = new Map(), configureActor) {
+    let summary;
     const records = [];
     const lifecycle = [];
     const files = { 'https://www.mlit.go.jp/kowan/kowan_fr3_000045.html': fx('page.html'), 'https://www.mlit.go.jp/kowan/content/002047258.xlsx': fx('current.xlsx'), 'https://www.mlit.go.jp/kowan/content/002047261.xlsx': fx('past.xlsx') };
+    const actor = {
+        init: async () => {}, getInput: async () => input,
+        openKeyValueStore: async () => ({ getValue: async (k) => structuredClone(state.get(k) ?? null), setValue: async (k, v) => { state.set(k, structuredClone(v)); } }),
+        pushData: async (r) => records.push(...r), setValue: async (_, value) => { summary = value; },
+        exit: async () => lifecycle.push('exit'), fail: async (m) => lifecycle.push('fail', m),
+    };
+    configureActor?.(actor, records);
     await run({
-        actor: {
-            init: async () => {}, getInput: async () => input,
-            openKeyValueStore: async () => ({ getValue: async (k) => structuredClone(state.get(k) ?? null), setValue: async (k, v) => { state.set(k, structuredClone(v)); } }),
-            pushData: async (r) => records.push(...r), setValue: async () => {}, exit: async () => lifecycle.push('exit'), fail: async (m) => lifecycle.push('fail', m),
-        },
+        actor,
         log: { info() {}, warning() {}, error() {} },
         fetchImpl: async (u) => (files[u] ? new Response(files[u]) : new Response('no', { status: 404 })),
         sleep: async () => {},
     });
-    return { records, lifecycle };
+    return { records, lifecycle, summary };
 }
 
 test('run: filters, newest first, monitoring', async () => {
@@ -158,4 +162,27 @@ test('round 3: own-key lookups, error cells, quoted % formats, exact link labels
     const $ = loadHtml(fx('page.html').toString('utf8'));
     $('a[href$="002047258.xlsx"]').text('コンテナ貨物流動週報について');
     assert.equal(workbookLinks($.html()).current, null);
+});
+
+test('prechecks the dataset item budget and allows non-PPE output', async () => {
+    for (const [isPayPerEvent, budget] of [[true, 1], [true, 0], [false, 0]]) {
+        const configureActor = (actor, records) => {
+            actor.getChargingManager = () => ({
+                getPricingInfo: () => ({ isPayPerEvent }),
+                calculateMaxEventChargeCountWithinLimit(event) {
+                    assert.equal(event, 'apify-default-dataset-item');
+                    return budget - records.length;
+                },
+            });
+        };
+        const input = { onlyNew: true, includeArchive: false };
+        const state = new Map();
+        const result = await exec(input, state, configureActor);
+        assert.deepEqual(result.lifecycle, ['exit']);
+        assert.equal(result.records.length, isPayPerEvent ? budget : 21);
+        assert.equal(result.summary.pushed, result.records.length);
+        assert.equal(result.summary.stopReason, isPayPerEvent ? 'spendingLimit' : undefined);
+        const next = await exec(input, state);
+        assert.equal(next.records.length, 21 - result.records.length);
+    }
 });

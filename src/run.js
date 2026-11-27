@@ -1,5 +1,6 @@
 import { setTimeout as delay } from 'node:timers/promises';
 import { createHash } from 'node:crypto';
+import { pushDataWithinLimit } from './charging.js';
 import { PAGE_URL, PORTS_EN, SOURCE, parseWorkbook, sanitize, workbookLinks } from './port.js';
 
 const USER_AGENT = 'jp-port-container-weekly-actor/1.0';
@@ -99,7 +100,7 @@ export async function run({ actor, log, fetchImpl = fetch, sleep = delay }) {
         // only stored rows count as output (and as seen in monitoring mode).
         let stored = 0;
         if (out.length) {
-            const res = await actor.pushData(out);
+            const res = await pushDataWithinLimit(actor, out);
             stored = res?.eventChargeLimitReached && Number.isInteger(res.chargedCount) ? Math.min(res.chargedCount, out.length) : out.length;
             if (stored < out.length) log.warning(`Spending limit reached: ${out.length - stored} rows were not saved and will be returned by the next run.`);
         }
@@ -108,7 +109,10 @@ export async function run({ actor, log, fetchImpl = fetch, sleep = delay }) {
             await store.setValue(`rows-${stateKey}`, state);
         }
         rows = null;
-        await actor.setValue('RUN_SUMMARY', { files: files.length, pushed: stored, notSaved: out.length - stored });
+        await actor.setValue('RUN_SUMMARY', {
+            files: files.length, pushed: stored, notSaved: out.length - stored,
+            ...(stored < out.length && { stopReason: 'spendingLimit' }),
+        });
         log.info(`Done. Pushed ${stored} rows from ${files.length} file(s).`);
         await actor.exit();
     } catch (err) {
